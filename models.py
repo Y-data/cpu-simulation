@@ -388,3 +388,4 @@ class ALU(BaseHardware):
                  ALU.bool_to_char(full_adder_1_output.sum) + \
                  ALU.bool_to_char(half_adder_output.sum)
         return output
+        # What to do with overflow (the carry over the last full adder)?
