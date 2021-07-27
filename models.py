@@ -1,6 +1,7 @@
 '''Models of the hardware components in a CPU'''
 from abc import ABC
-from typing import TypeVar
+from typing import NamedTuple, TypeVar
+from collections import namedtuple
 
 
 class BaseHardware(ABC):
@@ -8,6 +9,7 @@ class BaseHardware(ABC):
         raise NotImplementedError
 
 T = TypeVar('T', bound='BaseHardware')
+HalfAdderOutput = namedtuple('HalfAdderOutput', ['sum', 'carry'])
 
 
 class Transistor(BaseHardware):
@@ -154,3 +156,35 @@ class XOrGate(BaseHardware):
 
     def run(self):
         return self.and_gate_2.run()
+
+
+class HalfAdder(BaseHardware):
+    def __init__(self, input_1_state=False, input_2_state=False) -> None:
+        self.input_1_state = input_1_state
+        self.input_2_state = input_2_state
+
+        # initialize the logic internally
+        self.xor_gate = XOrGate(input_1_state, input_2_state)
+        self.and_gate = AndGate(input_1_state, input_2_state)
+
+    def __str__(self):
+        return f'HalfAdder({self.input_1_state}, {self.input_2_state})'
+
+    def __repr__(self):
+        return f'HalfAdder({self.input_1_state}, {self.input_2_state})'
+
+    def update_internals(self):
+        self.xor_gate.set_input(self.input_1_state, self.input_2_state)
+        self.and_gate.set_input(self.input_1_state, self.input_2_state)
+
+    def set_input(self, input_1_state: bool, input_2_state: bool):
+        self.input_1_state = input_1_state
+        self.input_2_state = input_2_state
+        self.update_internals()
+        return self
+
+    def run(self):
+        output_sum = self.xor_gate.run()
+        output_carry = self.and_gate.run()
+
+        return HalfAdderOutput(sum=output_sum, carry=output_carry)

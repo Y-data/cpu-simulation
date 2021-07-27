@@ -10,6 +10,7 @@ if __name__ == "__main__":
     and_gate = AndGate()
     or_gate = OrGate()
     xor_gate = XOrGate()
+    half_adder = HalfAdder()
 
     logging.debug('Testing AndGate')
     for (v1, v2) in truth_table_test:
@@ -26,3 +27,8 @@ if __name__ == "__main__":
     logging.debug('Testing XOrGate')
     for (v1, v2) in truth_table_test:
         logging.debug(f'{v1} {v2} {xor_gate.set_input(v1, v2).run()}')
+
+    print()
+    logging.debug('Testing HalfAdder')
+    for (v1, v2) in truth_table_test:
+        logging.debug(f'{int(v1)} + {int(v2)} = {int(half_adder.set_input(v1, v2).run().carry)}{int(half_adder.set_input(v1, v2).run().sum)}')
