@@ -233,3 +233,94 @@ class FullAdder(BaseHardware):
 
         return AdderOutput(sum=half_adder_2_output.sum, carry=output_carry)
     
+
+class ALU(BaseHardware):
+    '''Implements a single byte arithemetic logic unit (8 bits)'''
+    def __init__(self, input_1_state: str, input_2_state: str) -> None:
+        """Setup the ALU unit. Expect a start configuration
+
+        Args:
+            input_1_state (str):
+                A string representing the binary digits for the first number (e.g. '00001010' for 10)
+            input_2_state (str): 
+                A string representing the binary digits for the second number (e.g. '00001010' for 10)
+        """
+        self.input_1_state = input_1_state
+        self.input_2_state = input_2_state
+
+        # initialize the logic inside, note: binary starts from the right
+        self.half_adder = HalfAdder(
+            ALU.char_to_bool(input_1_state[7]),
+            ALU.char_to_bool(input_2_state[7])
+        )
+        self.full_adder_1 = FullAdder(
+            ALU.char_to_bool(input_1_state[6]),
+            ALU.char_to_bool(input_2_state[6]),
+            self.half_adder.run().carry
+        )
+        self.full_adder_2 = FullAdder(
+            ALU.char_to_bool(input_1_state[5]),
+            ALU.char_to_bool(input_2_state[5]),
+            self.full_adder_1.run().carry
+        )
+        self.full_adder_3 = FullAdder(
+            ALU.char_to_bool(input_1_state[4]),
+            ALU.char_to_bool(input_2_state[4]),
+            self.full_adder_2.run().carry
+        )
+        self.full_adder_4 = FullAdder(
+            ALU.char_to_bool(input_1_state[3]),
+            ALU.char_to_bool(input_2_state[3]),
+            self.full_adder_3.run().carry
+        )
+        self.full_adder_5 = FullAdder(
+            ALU.char_to_bool(input_1_state[2]),
+            ALU.char_to_bool(input_2_state[2]),
+            self.full_adder_4.run().carry
+        )
+        self.full_adder_6 = FullAdder(
+            ALU.char_to_bool(input_1_state[1]),
+            ALU.char_to_bool(input_2_state[1]),
+            self.full_adder_5.run().carry
+        )
+        self.full_adder_7 = FullAdder(
+            ALU.char_to_bool(input_1_state[0]),
+            ALU.char_to_bool(input_2_state[0]),
+            self.full_adder_6.run().carry
+        )
+
+    @classmethod
+    def from_decimal(cls, input_1_state: int, input_2_state: int):
+        return cls(bin(input_1_state)[2:], bin(input_2_state)[2:])
+
+    @staticmethod
+    def char_to_bool(c: str) -> bool:
+        """Converts a character to a boolean. No error checking is done
+
+        Args:
+            c (str): Either a '0' or '1'
+
+        Returns:
+            bool: True for '1' and False for '0'
+        """
+        return bool(int(c))
+
+    @staticmethod
+    def bool_to_char(b: bool) -> str:
+        """Converts a boolean to a character. No error checking is done
+
+        Args:
+            b (bool): Either True or False
+
+        Returns:
+            str: '0' for False and '1' for True
+        """
+        return str(int(b))
+
+    def __str__(self):
+        return f'ALU({self.input_1_state}, {self.input_2_state},)'
+
+    def __repr__(self):
+        return f'ALU({self.input_1_state}, {self.input_2_state})'
+
+    
