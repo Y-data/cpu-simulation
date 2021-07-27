@@ -11,7 +11,6 @@ class BaseHardware(ABC):
 T = TypeVar('T', bound='BaseHardware')
 AdderOutput = namedtuple('AdderOutput', ['sum', 'carry'])
 
-
 class Transistor(BaseHardware):
     def __init__(self, state=False):
         self.state = state
@@ -291,7 +290,7 @@ class ALU(BaseHardware):
 
     @classmethod
     def from_decimal(cls, input_1_state: int, input_2_state: int):
-        return cls(bin(input_1_state)[2:], bin(input_2_state)[2:])
+        return cls(bin(input_1_state)[2:].zfill(8), bin(input_2_state)[2:].zfill(8))
 
     @staticmethod
     def char_to_bool(c: str) -> bool:
@@ -323,4 +322,69 @@ class ALU(BaseHardware):
     def __repr__(self):
         return f'ALU({self.input_1_state}, {self.input_2_state})'
 
-    
+    def update_internals(self):
+        self.half_adder.set_input(
+            ALU.char_to_bool(self.input_1_state[7]),
+            ALU.char_to_bool(self.input_2_state[7])
+        )
+        self.full_adder_1.set_input(
+            ALU.char_to_bool(self.input_1_state[6]),
+            ALU.char_to_bool(self.input_2_state[6]),
+            self.half_adder.run().carry
+        )
+        self.full_adder_2.set_input(
+            ALU.char_to_bool(self.input_1_state[5]),
+            ALU.char_to_bool(self.input_2_state[5]),
+            self.full_adder_1.run().carry
+        )
+        self.full_adder_3.set_input(
+            ALU.char_to_bool(self.input_1_state[4]),
+            ALU.char_to_bool(self.input_2_state[4]),
+            self.full_adder_2.run().carry
+        )
+        self.full_adder_4.set_input(
+            ALU.char_to_bool(self.input_1_state[3]),
+            ALU.char_to_bool(self.input_2_state[3]),
+            self.full_adder_3.run().carry
+        )
+        self.full_adder_5.set_input(
+            ALU.char_to_bool(self.input_1_state[2]),
+            ALU.char_to_bool(self.input_2_state[2]),
+            self.full_adder_4.run().carry
+        )
+        self.full_adder_6.set_input(
+            ALU.char_to_bool(self.input_1_state[1]),
+            ALU.char_to_bool(self.input_2_state[1]),
+            self.full_adder_5.run().carry
+        )
+        self.full_adder_7.set_input(
+            ALU.char_to_bool(self.input_1_state[0]),
+            ALU.char_to_bool(self.input_2_state[0]),
+            self.full_adder_6.run().carry
+        )
+
+    def set_input(self, input_1_state: str, input_2_state: str):
+        self.input_1_state = input_1_state
+        self.input_2_state = input_2_state
+        self.update_internals()
+        return self
+
+    def run(self):
+        half_adder_output = self.half_adder.run()
+        full_adder_1_output = self.full_adder_1.run()
+        full_adder_2_output = self.full_adder_2.run()
+        full_adder_3_output = self.full_adder_3.run()
+        full_adder_4_output = self.full_adder_4.run()
+        full_adder_5_output = self.full_adder_5.run()
+        full_adder_6_output = self.full_adder_6.run()
+        full_adder_7_output = self.full_adder_7.run()
+
+        output = ALU.bool_to_char(full_adder_7_output.sum) + \
+                 ALU.bool_to_char(full_adder_6_output.sum) + \
+                 ALU.bool_to_char(full_adder_5_output.sum) + \
+                 ALU.bool_to_char(full_adder_4_output.sum) + \
+                 ALU.bool_to_char(full_adder_3_output.sum) + \
+                 ALU.bool_to_char(full_adder_2_output.sum) + \
+                 ALU.bool_to_char(full_adder_1_output.sum) + \
+                 ALU.bool_to_char(half_adder_output.sum)
+        return output
